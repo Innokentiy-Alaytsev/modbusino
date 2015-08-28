@@ -1,5 +1,6 @@
 /*
  * Copyright © 2011 Stéphane Raimbault <stephane.raimbault@gmail.com>
+ * Copyright © 2015 Alajcev Innokentij <alaitsev@gmail.com>
  *
  * License ISC, see LICENSE for more details.
 
@@ -31,8 +32,10 @@ public:
     ModbusinoSlave(uint8_t slave);
     void setup(long baud);
     int loop(uint16_t *tab_reg, uint16_t nb_reg);
+
 private:
     int _slave;
+    long _byte_time; // Approximate time to receive one byte of data
 };
 
 #endif
