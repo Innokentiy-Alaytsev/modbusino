@@ -30,6 +30,7 @@
 
 /* Supported function codes */
 #define _FC_READ_HOLDING_REGISTERS 0x03
+#define _FC_WRITE_SINGLE_REGISTER 0x06
 #define _FC_WRITE_MULTIPLE_REGISTERS 0x10
 
 enum { _STEP_FUNCTION = 0x01, _STEP_META, _STEP_DATA };
@@ -187,6 +188,9 @@ static int receive (uint8_t *req, uint8_t _slave) {
 				else if (function == _FC_WRITE_MULTIPLE_REGISTERS) {
 					length_to_read = 5;
 				}
+				else if (function == _FC_WRITE_SINGLE_REGISTER) {
+					length_to_read = 4;
+				}
 				else {
 					/* Wait a moment to receive the remaining garbage */
 					flush ();
@@ -259,7 +263,7 @@ static void reply (
 		return;
 	}
 
-	if (address + nb > nb_reg) {
+	if ((_FC_WRITE_SINGLE_REGISTER != function) && (address + nb > nb_reg)) {
 		rsp_length = response_exception (
 		    slave, function, MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS, rsp);
 	}
@@ -275,6 +279,16 @@ static void reply (
 				rsp[ rsp_length++ ] = tab_reg[ i ] >> 8;
 				rsp[ rsp_length++ ] = tab_reg[ i ] & 0xFF;
 			}
+		}
+		else if (function == _FC_WRITE_SINGLE_REGISTER) {
+			tab_reg[ address ] = (req[ _MODBUS_RTU_FUNCTION + 3 ] << 8) +
+			    req[ _MODBUS_RTU_FUNCTION + 3 + 1 ];
+
+			rsp_length = build_response_basis (slave, function, rsp);
+			rsp[ rsp_length++ ] = address >> 8 & 0xFF00;
+			rsp[ rsp_length++ ] = address & 0x00FF;
+			rsp[ rsp_length++ ] = req[ _MODBUS_RTU_FUNCTION + 3 ];
+			rsp[ rsp_length++ ] = req[ _MODBUS_RTU_FUNCTION + 3 + 1 ];
 		}
 		else {
 			uint16_t i, j;
