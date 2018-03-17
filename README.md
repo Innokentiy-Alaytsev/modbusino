@@ -15,6 +15,7 @@ To keep it simple and to reduce memory consumption, only the two following
 Modbus functions are supported:
 
 * read holding registers (0x03)
+* write single register (0x06)
 * write multiple registers (0x10)
 
 Example
